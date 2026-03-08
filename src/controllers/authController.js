@@ -1,5 +1,7 @@
 import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
+import {generateToken} from "../utils/generateToken.js";
+import e from "express";
 
 const register = async (req, res) => {
     const body = req.body
@@ -24,7 +26,9 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+   
     // Create user
+
     const user = await prisma.user.create({
         data: {
             name,
@@ -32,6 +36,9 @@ const register = async (req, res) => {
             password: hashedPassword
         }
     });
+     //Generate JWT token 
+    const token = generateToken(user.id, res);
+    
     res.status(201).json({ 
         status: "success", 
         message: "User registered successfully",
@@ -41,7 +48,8 @@ const register = async (req, res) => {
                 name: user.name,
                 email: user.email     
             }        
-        } 
+        },
+        token,  
     });
 }
 
@@ -58,16 +66,44 @@ const login = async (req, res) => {
         where: { email: email }
     });
     if (!user) {
-        return res.status(400).json({ error: 'Invalid email or password' });
+        return res
+        .status(401)
+        .json({ error: 'Invalid email or password' });
     }
 
     // Check if password is correct
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-        return res.status(400).json({ error: 'Invalid email or password' });
+        return res
+        .status(401)
+        .json({ error: 'Incorrect password' });
     }
 
-    res.json({ message: 'Login successful' });
+    //Generate JWT token (optional, can be implemented later)
+    const token = generateToken(user.id, res);
+
+    res.status(201).json({ 
+        status: "success", 
+        message: "User logged in successfully",
+        data: {
+            user: {
+                id: user.id,
+                email: user.email     
+            },
+            token,        
+        } 
+    });
 }
+const logout = async (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,   
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    }); 
+    res.status(200).json({
+        status: "success",
+        message: "User logged out successfully"
+    })
+}   
  
-export {register, login}
+export {register, login, logout}

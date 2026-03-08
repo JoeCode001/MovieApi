@@ -8,14 +8,17 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start": "nodemon src/server.js",
+    "seed:movies": "node prisma/seed.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
-    "pg": "^8.20.0"
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.3.5",
