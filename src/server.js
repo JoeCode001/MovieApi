@@ -6,6 +6,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 import movieRoutes from './routes/movieRoutes.js'; 
 import authRoutes from './routes/authRoutes.js'; 
 import watchlistRoutes from './routes/watchlistRoutes.js';
+import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 config(); // Load environment variables from .env file
 connectDB()
@@ -16,10 +17,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 //Api routes
 app.use('/movies', movieRoutes);
 app.use('/auth', authRoutes);
 app.use('/watchlist', watchlistRoutes);
+
+
+app.use(notFound) // 404 handler for undefined routes
+app.use(errorHandler) // Global error handling middleware
 
 
 const PORT = process.env.PORT || 3000;
